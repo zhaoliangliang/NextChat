@@ -1,15 +1,15 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "build": {
-    "beforeBuildCommand": "yarn export",
-    "beforeDevCommand": "yarn export:dev",
+    "beforeBuildCommand": "npm run build",
+    "beforeDevCommand": "npm run dev",
     "devPath": "http://localhost:3000",
     "distDir": "../out",
     "withGlobalTauri": true
   },
   "package": {
-    "productName": "NextChat",
-    "version": "2.15.8"
+    "productName": "青银助手",
+    "version": "2.10.3"
   },
   "tauri": {
     "allowlist": {
@@ -46,21 +46,33 @@
         "unminimize": true
       },
       "fs": {
-        "all": true
+        "all": true,
+        "scope": ["**"]
       },
       "notification": {
         "all": true
       },
-      "http": {
+      "os": {
+        "all": true
+      },
+      "path": {
+        "all": true
+      },
+      "process": {
         "all": true,
-        "request": true,
-        "scope": ["https://*", "http://*"]
+        "exit": true,
+        "relaunch": true,
+        "relaunchDangereous": true
+      },
+      "protocol": {
+        "asset": true,
+        "assetScope": ["**"]
       }
     },
     "bundle": {
       "active": true,
       "category": "DeveloperTool",
-      "copyright": "2023, Zhang Yifei All Rights Reserved.",
+      "copyright": "",
       "deb": {
         "depends": []
       },
@@ -72,8 +84,8 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.yida.chatgpt.next.web",
-      "longDescription": "NextChat is a cross-platform ChatGPT client, including Web/Win/Linux/OSX/PWA.",
+      "identifier": "com.qingyin.chat",
+      "longDescription": "青银助手是一个跨平台的ChatGPT客户端，包括Web/Win/Linux/OSX/PWA。",
       "macOS": {
         "entitlements": null,
         "exceptionDomain": "",
@@ -82,7 +94,7 @@
         "signingIdentity": null
       },
       "resources": [],
-      "shortDescription": "NextChat App",
+      "shortDescription": "青银助手",
       "targets": "all",
       "windows": {
         "certificateThumbprint": null,
@@ -95,22 +107,14 @@
       "dangerousUseHttpScheme": true
     },
     "updater": {
-      "active": true,
-      "endpoints": [
-        "https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web/releases/latest/download/latest.json"
-      ],
-      "dialog": true,
-      "windows": {
-        "installMode": "passive"
-      },
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERFNDE4MENFM0Y1RTZBOTQKUldTVWFsNC96b0JCM3RqM2NmMnlFTmxIaStRaEJrTHNOU2VqRVlIV1hwVURoWUdVdEc1eDcxVEYK"
+      "active": false
     },
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
+        "height": 640,
         "resizable": true,
-        "title": "NextChat",
+        "title": "青银助手",
         "width": 960,
         "hiddenTitle": true,
         "titleBarStyle": "Overlay"
@@ -118,3 +122,4 @@
     ]
   }
 }
+
