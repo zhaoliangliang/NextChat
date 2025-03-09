@@ -11,7 +11,7 @@ import LoadingIcon from "../icons/three-dots.svg";
 import { getCSSVar, useMobileScreen } from "../utils";
 
 import dynamic from "next/dynamic";
-import { Path, SlotID } from "../constant";
+import { Path, SlotID, FIXED_MODEL, FIXED_PROVIDER } from "../constant";
 import { ErrorBoundary } from "./error";
 
 import { getISOLang, getLang } from "../locales";
@@ -30,6 +30,7 @@ import { type ClientApi, getClientApi } from "../client/api";
 import { useAccessStore } from "../store";
 import clsx from "clsx";
 import { initializeMcpSystem, isMcpEnabled } from "../mcp/actions";
+import { useChatStore } from "../store/chat";
 
 export function Loading(props: { noLogo?: boolean }) {
   return (
@@ -241,7 +242,57 @@ export function Home() {
 
   useEffect(() => {
     console.log("[Config] got config from build time", getClientConfig());
-    useAccessStore.getState().fetch();
+
+    // 强制清除 IndexedDB 存储
+    try {
+      const clearChatStorage = async () => {
+        // 清除 localStorage
+        localStorage.removeItem("chat-next-web-store");
+        // 清除 IndexedDB
+        if (window.indexedDB) {
+          const req = window.indexedDB.deleteDatabase("chat-next-web-store");
+          req.onsuccess = () =>
+            console.log("[Storage] Successfully deleted IndexedDB");
+          req.onerror = () =>
+            console.error("[Storage] Failed to delete IndexedDB");
+        }
+
+        // 延迟一会儿再初始化，确保清除成功
+        setTimeout(() => {
+          useAccessStore.getState().fetch();
+
+          // 强制设置模型为DeepSeek
+          const appConfig = useAppConfig.getState();
+          appConfig.modelConfig.model = FIXED_MODEL;
+          appConfig.modelConfig.providerName = FIXED_PROVIDER;
+
+          // 强制设置所有现有会话的模型
+          const chatStore = useChatStore.getState();
+          chatStore.sessions.forEach((session) => {
+            session.mask.modelConfig.model = FIXED_MODEL;
+            session.mask.modelConfig.providerName = FIXED_PROVIDER;
+          });
+        }, 500);
+      };
+
+      clearChatStorage();
+    } catch (e) {
+      console.error("[Storage] Failed to clear storage:", e);
+      // 出错后仍然尝试初始化
+      useAccessStore.getState().fetch();
+
+      // 强制设置模型为DeepSeek
+      const appConfig = useAppConfig.getState();
+      appConfig.modelConfig.model = FIXED_MODEL;
+      appConfig.modelConfig.providerName = FIXED_PROVIDER;
+
+      // 强制设置所有现有会话的模型
+      const chatStore = useChatStore.getState();
+      chatStore.sessions.forEach((session) => {
+        session.mask.modelConfig.model = FIXED_MODEL;
+        session.mask.modelConfig.providerName = FIXED_PROVIDER;
+      });
+    }
 
     const initMcp = async () => {
       try {

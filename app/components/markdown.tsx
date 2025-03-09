@@ -12,13 +12,8 @@ import Locale from "../locales";
 import LoadingIcon from "../icons/three-dots.svg";
 import ReloadButtonIcon from "../icons/reload.svg";
 import React from "react";
-import { useDebouncedCallback } from "use-debounce";
 import { showImageModal, FullScreen } from "./ui-lib";
-import {
-  ArtifactsShareButton,
-  HTMLPreview,
-  HTMLPreviewHander,
-} from "./artifacts";
+import { HTMLPreview, HTMLPreviewHander } from "./artifacts";
 import { useChatStore } from "../store";
 import { IconButton } from "./button";
 
@@ -73,60 +68,23 @@ export function Mermaid(props: { code: string }) {
 
 export function PreCode(props: { children: any }) {
   const ref = useRef<HTMLPreElement>(null);
-  const previewRef = useRef<HTMLPreviewHander>(null);
   const [mermaidCode, setMermaidCode] = useState("");
   const [htmlCode, setHtmlCode] = useState("");
-  const { height } = useWindowSize();
-  const chatStore = useChatStore();
-  const session = chatStore.currentSession();
+  const [previewRef, setPreviewRef] = useState<RefObject<HTMLPreviewHander>>();
+  const config = useAppConfig();
+  const enableArtifacts = !!config.enableArtifacts;
+  const { width, height } = useWindowSize();
 
-  const renderArtifacts = useDebouncedCallback(() => {
+  useEffect(() => {
     if (!ref.current) return;
     const mermaidDom = ref.current.querySelector("code.language-mermaid");
     if (mermaidDom) {
-      setMermaidCode((mermaidDom as HTMLElement).innerText);
+      setMermaidCode(mermaidDom.textContent ?? "");
     }
+
     const htmlDom = ref.current.querySelector("code.language-html");
-    const refText = ref.current.querySelector("code")?.innerText;
     if (htmlDom) {
-      setHtmlCode((htmlDom as HTMLElement).innerText);
-    } else if (
-      refText?.startsWith("<!DOCTYPE") ||
-      refText?.startsWith("<svg") ||
-      refText?.startsWith("<?xml")
-    ) {
-      setHtmlCode(refText);
-    }
-  }, 600);
-
-  const config = useAppConfig();
-  const enableArtifacts =
-    session.mask?.enableArtifacts !== false && config.enableArtifacts;
-
-  //Wrap the paragraph for plain-text
-  useEffect(() => {
-    if (ref.current) {
-      const codeElements = ref.current.querySelectorAll(
-        "code",
-      ) as NodeListOf<HTMLElement>;
-      const wrapLanguages = [
-        "",
-        "md",
-        "markdown",
-        "text",
-        "txt",
-        "plaintext",
-        "tex",
-        "latex",
-      ];
-      codeElements.forEach((codeElement) => {
-        let languageClass = codeElement.className.match(/language-(\w+)/);
-        let name = languageClass ? languageClass[1] : "";
-        if (wrapLanguages.includes(name)) {
-          codeElement.style.whiteSpace = "pre-wrap";
-        }
-      });
-      setTimeout(renderArtifacts, 1);
+      setHtmlCode(htmlDom.textContent ?? "");
     }
   }, []);
 
@@ -150,19 +108,15 @@ export function PreCode(props: { children: any }) {
       )}
       {htmlCode.length > 0 && enableArtifacts && (
         <FullScreen className="no-dark html" right={70}>
-          <ArtifactsShareButton
-            style={{ position: "absolute", right: 20, top: 10 }}
-            getCode={() => htmlCode}
-          />
           <IconButton
-            style={{ position: "absolute", right: 120, top: 10 }}
+            style={{ position: "absolute", right: 20, top: 10 }}
             bordered
             icon={<ReloadButtonIcon />}
             shadow
-            onClick={() => previewRef.current?.reload()}
+            onClick={() => previewRef?.current?.reload()}
           />
           <HTMLPreview
-            ref={previewRef}
+            ref={previewRef as any}
             code={htmlCode}
             autoHeight={!document.fullscreenElement}
             height={!document.fullscreenElement ? 600 : height}

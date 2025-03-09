@@ -828,3 +828,7 @@ export const DEFAULT_GA_ID = "G-89WN60ZK2E";
 
 export const SAAS_CHAT_URL = "https://nextchat.club";
 export const SAAS_CHAT_UTM_URL = "https://nextchat.club?utm=github";
+
+// 添加固定的模型常量
+export const FIXED_MODEL = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B";
+export const FIXED_PROVIDER = ServiceProvider.SiliconFlow;

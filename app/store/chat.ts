@@ -27,6 +27,8 @@ import {
   ServiceProvider,
   StoreKey,
   SUMMARIZE_MODEL,
+  FIXED_MODEL,
+  FIXED_PROVIDER,
 } from "../constant";
 import Locale, { getLang } from "../locales";
 import { prettyObject } from "../utils/format";
@@ -115,7 +117,14 @@ function createEmptySession(): ChatSession {
     lastUpdate: Date.now(),
     lastSummarizeIndex: 0,
 
-    mask: createEmptyMask(),
+    mask: {
+      ...createEmptyMask(),
+      modelConfig: {
+        ...useAppConfig.getState().modelConfig,
+        model: FIXED_MODEL as ModelType,
+        providerName: FIXED_PROVIDER,
+      },
+    },
   };
 }
 
@@ -223,8 +232,15 @@ async function getMcpSystemPrompt(): Promise<string> {
   return MCP_SYSTEM_TEMPLATE.replace("{{ MCP_TOOLS }}", toolsStr);
 }
 
+const initialSession = createEmptySession();
+initialSession.mask.modelConfig = {
+  ...initialSession.mask.modelConfig,
+  model: "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B" as ModelType,
+  providerName: ServiceProvider.SiliconFlow,
+};
+
 const DEFAULT_CHAT_STATE = {
-  sessions: [createEmptySession()],
+  sessions: [initialSession],
   currentSessionIndex: 0,
   lastInput: "",
 };
@@ -267,8 +283,15 @@ export const useChatStore = createPersistStore(
       },
 
       clearSessions() {
+        const newSession = createEmptySession();
+        newSession.mask.modelConfig = {
+          ...newSession.mask.modelConfig,
+          model: FIXED_MODEL as ModelType,
+          providerName: FIXED_PROVIDER,
+        };
+
         set(() => ({
-          sessions: [createEmptySession()],
+          sessions: [newSession],
           currentSessionIndex: 0,
         }));
       },
@@ -351,7 +374,29 @@ export const useChatStore = createPersistStore(
 
         if (deletingLastSession) {
           nextIndex = 0;
-          sessions.push(createEmptySession());
+          // 创建一个新的会话对象，而不是调用createEmptySession
+          const newSession = {
+            id: nanoid(),
+            topic: DEFAULT_TOPIC,
+            memoryPrompt: "",
+            messages: [],
+            stat: {
+              tokenCount: 0,
+              wordCount: 0,
+              charCount: 0,
+            },
+            lastUpdate: Date.now(),
+            lastSummarizeIndex: 0,
+            mask: {
+              ...createEmptyMask(),
+              modelConfig: {
+                ...useAppConfig.getState().modelConfig,
+                model: FIXED_MODEL as ModelType,
+                providerName: FIXED_PROVIDER,
+              },
+            },
+          };
+          sessions.push(newSession);
         }
 
         // for undo delete action
@@ -860,12 +905,21 @@ export const useChatStore = createPersistStore(
   },
   {
     name: StoreKey.Chat,
-    version: 3.3,
+    version: 3.4,
     migrate(persistedState, version) {
       const state = persistedState as any;
       const newState = JSON.parse(
         JSON.stringify(state),
       ) as typeof DEFAULT_CHAT_STATE;
+
+      // 确保迁移后的会话使用正确的模型
+      newState.sessions.forEach((session) => {
+        session.mask.modelConfig = {
+          ...session.mask.modelConfig,
+          model: FIXED_MODEL as ModelType,
+          providerName: FIXED_PROVIDER,
+        };
+      });
 
       if (version < 2) {
         newState.sessions = [];

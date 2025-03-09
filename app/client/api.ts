@@ -135,46 +135,38 @@ interface ChatProvider {
 export class ClientApi {
   public llm: LLMApi;
 
-  constructor(provider: ModelProvider = ModelProvider.GPT) {
+  constructor(provider: ModelProvider) {
+    this.llm = this.createLLMApi(provider);
+  }
+
+  createLLMApi(provider: ModelProvider): LLMApi {
     switch (provider) {
       case ModelProvider.GeminiPro:
-        this.llm = new GeminiProApi();
-        break;
+        return new GeminiProApi();
       case ModelProvider.Claude:
-        this.llm = new ClaudeApi();
-        break;
+        return new ClaudeApi();
       case ModelProvider.Ernie:
-        this.llm = new ErnieApi();
-        break;
+        return new ErnieApi();
       case ModelProvider.Doubao:
-        this.llm = new DoubaoApi();
-        break;
+        return new DoubaoApi();
       case ModelProvider.Qwen:
-        this.llm = new QwenApi();
-        break;
+        return new QwenApi();
       case ModelProvider.Hunyuan:
-        this.llm = new HunyuanApi();
-        break;
+        return new HunyuanApi();
       case ModelProvider.Moonshot:
-        this.llm = new MoonshotApi();
-        break;
+        return new MoonshotApi();
       case ModelProvider.Iflytek:
-        this.llm = new SparkApi();
-        break;
+        return new SparkApi();
       case ModelProvider.DeepSeek:
-        this.llm = new DeepSeekApi();
-        break;
+        return new DeepSeekApi();
       case ModelProvider.XAI:
-        this.llm = new XAIApi();
-        break;
+        return new XAIApi();
       case ModelProvider.ChatGLM:
-        this.llm = new ChatGLMApi();
-        break;
+        return new ChatGLMApi();
       case ModelProvider.SiliconFlow:
-        this.llm = new SiliconflowApi();
-        break;
+        return new SiliconflowApi();
       default:
-        this.llm = new ChatGPTApi();
+        return new ChatGPTApi();
     }
   }
 

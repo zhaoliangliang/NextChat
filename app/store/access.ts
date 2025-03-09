@@ -17,13 +17,14 @@ import {
   XAI_BASE_URL,
   CHATGLM_BASE_URL,
   SILICONFLOW_BASE_URL,
+  FIXED_MODEL,
+  FIXED_PROVIDER,
 } from "../constant";
 import { getHeaders } from "../client/api";
 import { getClientConfig } from "../config/client";
 import { createPersistStore } from "../utils/store";
 import { ensure } from "../utils/clone";
 import { DEFAULT_CONFIG } from "./config";
-import { getModelProvider } from "../utils/model";
 
 let fetchState = 0; // 0 not fetch, 1 fetching, 2 done
 
@@ -254,12 +255,17 @@ export const useAccessStore = createPersistStore(
       })
         .then((res) => res.json())
         .then((res) => {
-          const defaultModel = res.defaultModel ?? "";
-          if (defaultModel !== "") {
-            const [model, providerName] = getModelProvider(defaultModel);
-            DEFAULT_CONFIG.modelConfig.model = model;
-            DEFAULT_CONFIG.modelConfig.providerName = providerName as any;
-          }
+          // 防止覆盖我们自定义的模型设置
+          // const defaultModel = res.defaultModel ?? "";
+          // if (defaultModel !== "") {
+          //   const [model, providerName] = getModelProvider(defaultModel);
+          //   DEFAULT_CONFIG.modelConfig.model = model;
+          //   DEFAULT_CONFIG.modelConfig.providerName = providerName as any;
+          // }
+
+          // 强制使用我们的模型设置
+          DEFAULT_CONFIG.modelConfig.model = FIXED_MODEL;
+          DEFAULT_CONFIG.modelConfig.providerName = FIXED_PROVIDER;
 
           return res;
         })
